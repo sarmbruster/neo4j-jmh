@@ -1,0 +1,43 @@
+A quick demo project on how to use http://openjdk.java.net/projects/code-tools/jmh/[JMH] to benchmark your http://neo4j.com[Neo4j] stored procedures.
+
+== building and running
+
+To build the project:
+[source,shell]
+----
+mvn package
+----
+
+This uses the maven shade plugin to contain a uber jar containing JMH itself, all your dependencies and your code to be benchmarked.
+
+Run benchmarks:
+
+[source,shell]
+----
+java -jar target/benchmarks.jar
+----
+
+See link:src/main/java/org/neo4j/jmh/Neo4jProcedureBenchmark.java[Neo4jProcedureBenchmark.java] for a sample benchmark.
+
+NOTE: I've not yet figured out how to set defaults for all the setting being configured currently in annotations on the Neo4jProcedureBenchmark.java class.
+
+== generating flamegraphs
+
+http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html[Flamegraphs] are a incredible powerful tool to understand which parts of your codebase can benefit from opmizations.
+
+There's an easy way to produce them from your benchmarks. It's important that you only have one single benchmark active at a time, otherwise the flamegraph will be an aggregation of all your benchmarks.
+
+As a intermediary step, you need to collect data using https://docs.oracle.com/javacomponents/jmc-5-4/jfr-runtime-guide/run.htm#JFRUH164[Java Flight Recorder]. To enable it use
+
+[source, shell]
+----
+java -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=duration=30s,filename=neo4j-procedures.jfr -XX:FlightRecorderOptions=stackdepth=256 -jar target/benchmarks.jar
+----
+
+This runs the benchmark and writes JFR information to `neo4j-procedures.jfr`.
+
+The next step is using a tool to generate flamegraphs from the JFR recordings. There's multiple options to do this, e.g. https://github.com/chrishantha/jfr-flame-graph as command line tool. I've decided to use a plugin for IntelliJ: https://plugins.jetbrains.com/plugin/10305-flamegraph-profiler[Flamegraph Profiler].
+
+In IntelliJ you choose `Tools|Flamegraph Profile|Upload file` and it sends you to your webbrowser where you can upload the recorded jfr file and start analysis on it.
+
+
