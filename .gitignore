@@ -1,0 +1,8 @@
+.idea/
+*.iws
+*.iml
+# IntelliJ
+out/
+target/
+hs_err_pid*
+*.jfr
